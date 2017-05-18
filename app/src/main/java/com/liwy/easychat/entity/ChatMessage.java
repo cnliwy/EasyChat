@@ -19,14 +19,16 @@ public class ChatMessage {
     public static final int TYPE_IMAGE = 2;                 // 图片
     public static final int TYPE_AUDIO = 3;                 // 语音
 
-
-    private String id;
-    private String talkId;
-    private String content;
-    private String groupId;
+    private String msdId;//消息id
+    private String id;     //自己的id
+    private String talkId;  //对方的id
+    private String content; //消息内容
+    private String groupId; //群id
     private int type;//1 单聊 2 群聊 3 公告
     private int contentType;//1 文字、2 图片、3 语音
     private int dataType;//1 系统 2好友 3消息
+
+    private String action;//操作
 
     public String getId() {
         return id;
@@ -82,5 +84,17 @@ public class ChatMessage {
 
     public void setDataType(int dataType) {
         this.dataType = dataType;
+    }
+
+    public String getMsdId() {
+        return msdId;
+    }
+
+    public void setMsdId(String msdId) {
+        this.msdId = msdId;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
     }
 }

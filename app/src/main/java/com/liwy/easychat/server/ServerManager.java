@@ -14,7 +14,7 @@ public class ServerManager implements Runnable{
     public static final int PORT = 8888;
     private ServerSocket server;
     public static int count = 0;
-    private static Map<Integer,ClientThread> clients;
+    private static Map<String,ClientThread> clients;
     private static ServerManager instance;
 
     public static void init(int port){
@@ -34,7 +34,7 @@ public class ServerManager implements Runnable{
             }else{
                 this.server = new ServerSocket(port);
             }
-            clients = new HashMap<Integer, ClientThread>();
+            clients = new HashMap<String, ClientThread>();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -43,7 +43,7 @@ public class ServerManager implements Runnable{
     private ServerManager() {
         try {
             this.server = new ServerSocket(PORT);
-            clients = new HashMap<Integer, ClientThread>();
+            clients = new HashMap<String, ClientThread>();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -54,26 +54,21 @@ public class ServerManager implements Runnable{
         while (true){
             try {
                 Socket socket = server.accept();
-                System.out.println("接收到来自客户端" + count + "的连接");
+                System.out.println("接收到来自客户端的连接");
                 ClientThread clientThread = null;
-                if (count == 0){
-                    clientThread = new ClientThread(socket,0,1);
-                }else if (count == 1){
-                    clientThread = new ClientThread(socket,1,0);
-                }else{
-                    clientThread = new ClientThread(socket,count,count+1);
-                }
+                clientThread = new ClientThread(socket);
                 new Thread(clientThread).start();
-                clients.put(count++, clientThread);
-
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
+    public void online(String id,ClientThread client){
+        clients.put(id,client);
+    }
 
     // 回复消息给某人
-    public static void sendTo(int userId,String content){
+    public static void sendTo(String userId,String content){
         ClientThread clientThread = clients.get(userId);
         clientThread.send(content);
     }

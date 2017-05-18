@@ -39,6 +39,7 @@ public class MessageUtil {
             jsonObject.put("talkId",chatMessage.getTalkId());
             jsonObject.put("content",chatMessage.getContent());
             jsonObject.put("dataType",chatMessage.getDataType());
+            jsonObject.put("action",ChatActions.ACTION_SEND);
             return jsonObject.toString();
         } catch (JSONException e) {
             e.printStackTrace();
@@ -46,14 +47,12 @@ public class MessageUtil {
         return null;
     }
 
-    public static String processLogin(ChatMessage chatMessage){
+    // 生成登录json
+    public static String processLogin(String id){
         JSONObject jsonObject = new JSONObject();
         try {
-            jsonObject.put("id",chatMessage.getId());
-            jsonObject.put("type",chatMessage.getType());
-            jsonObject.put("talkId",chatMessage.getTalkId());
-            jsonObject.put("content",chatMessage.getContent());
-            jsonObject.put("dataType",chatMessage.getDataType());
+            jsonObject.put("id",id);
+            jsonObject.put("action",ChatActions.ACTION_LOGIN);
             return jsonObject.toString();
         } catch (JSONException e) {
             e.printStackTrace();

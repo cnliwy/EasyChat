@@ -73,7 +73,7 @@ public class ConnectManager {
     }
     OutputStream outputStream = null;
     // 发送数据至服务器
-    public void sendDataToServer(final String content){
+    private void sendData(final String content){
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -88,8 +88,8 @@ public class ConnectManager {
         }).start();
     }
     public void login(String id){
-        String content = "";
-
+        String content = MessageUtil.processLogin(id);
+        sendData(content);
     }
     // 发送文字消息
     public void sendMessage(String text){
@@ -101,7 +101,7 @@ public class ConnectManager {
         chatMessage.setType(ChatMessage.TYPE_TEXT);
         chatMessage.setDataType(ChatMessage.DATA_TYPE_MESSAGE);
         String content = MessageUtil.processMessage(chatMessage);
-        sendDataToServer(content);
+        sendData(content);
     }
 
     //  关闭连接

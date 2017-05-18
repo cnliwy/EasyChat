@@ -1,5 +1,10 @@
 package com.liwy.easychat.server;
 
+import com.liwy.easychat.chat.ChatActions;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -14,16 +19,16 @@ public class ClientThread implements Runnable{
     // 客户端的socket连接
     private Socket socket;
     // 跟谁聊天
-    private int talkTo;
-    private int self;
+    private int talkId;
+    private int id;
 
     private OutputStream outputStream;
     private InputStream inputStream;
 
-    public ClientThread(Socket socket, int self, int talkTo) {
+
+
+    public ClientThread(Socket socket) {
         this.socket = socket;
-        this.talkTo = talkTo;
-        this.self = self;
     }
 
     @Override
@@ -36,15 +41,11 @@ public class ClientThread implements Runnable{
                     int temp = inputStream.read(buffer);
                     if (temp != -1){
                         String content = new String(buffer,0,temp);
+
                         if ("0".equals(content))flag = false;
-                        System.out.println("客户端" + self + "说：" + content);
+                        System.out.println("客户端" + id + "说：" + content);
                         // 转发消息
-                        if (self == 1){
-                            ServerManager.sendTo(0,content);
-                        }
-                        if (self == 0){
-                            ServerManager.sendTo(1,content);
-                        }
+                        ServerManager.sendTo(0,content);
                     }
                 }
             }catch (SocketException e){
@@ -64,6 +65,20 @@ public class ClientThread implements Runnable{
                     e.printStackTrace();
                 }
             }
+    }
+    public void parseData(String content){
+        try {
+            JSONObject jsonObject = new JSONObject(content);
+            String action = "";
+            if (jsonObject.isNull("action"))action = jsonObject.getString("action");
+            if (action != null && !"".equals(action)){
+                if (ChatActions.ACTION_LOGIN.equals(action)){
+                    this.
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
     // 发送数据
     public void send(String content){
