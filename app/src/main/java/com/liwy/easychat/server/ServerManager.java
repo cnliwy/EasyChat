@@ -21,11 +21,12 @@ import static android.R.attr.key;
 public class ServerManager implements Runnable{
     public static final int PORT = 8888;
     private ServerSocket server;
+    // 用户连接线程缓存
     private static Map<String,ClientThread> clients;
     private static ServerManager instance;
 
     public static void init(int port){
-        instance = new ServerManager(8888);
+        instance = new ServerManager(port);
         new Thread(instance).start();
     }
 
@@ -84,13 +85,14 @@ public class ServerManager implements Runnable{
         if (sb.length() > 0)sb.deleteCharAt(sb.length()-1);
         return sb.toString();
     }
+    // 上线，通知好友更新列表
     public void online(String id,ClientThread client){
         clients.put(id,client);
         pushRosterNotification(id);//有人上线后更新好友列表
     }
 
 
-    // 离线，通知好友更新
+    // 离线，清除缓存，通知好友更新列表
     public void offline(String userId){
         System.out.println(userId + "下线了");
         clients.remove(userId);

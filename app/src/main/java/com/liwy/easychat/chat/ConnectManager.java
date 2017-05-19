@@ -157,6 +157,7 @@ public class ConnectManager {
         System.out.println("关闭连接");
         sendData(MessageUtil.processLogout(id));
         isConnected = false;
+        connectManager = null;
     }
 
     public String getId() {

@@ -41,6 +41,7 @@ public class ClientThread implements Runnable{
     public void run() {
             try {
                 inputStream = socket.getInputStream();
+                outputStream = socket.getOutputStream();
                 byte[] buffer = new byte[1024 * 4];
                 boolean flag = true;
                 while (flag){

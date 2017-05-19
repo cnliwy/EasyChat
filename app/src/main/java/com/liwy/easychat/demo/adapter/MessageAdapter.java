@@ -33,7 +33,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         int layout = -1;
 //        switch (viewType) {
 //        case Message.TYPE_MESSAGE:
-//            layout = R.layout.item_message_left;
+//            layout = R.layout.item_message;
 //            break;
 //        case Message.TYPE_LOG:
 //            layout = R.layout.item_log;
@@ -42,7 +42,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
 //            layout = R.layout.item_action;
 //            break;
 //        }
-        layout = R.layout.item_message_left;
+        layout = R.layout.item_message;
         View v = LayoutInflater
                 .from(parent.getContext())
                 .inflate(layout, parent, false);
@@ -73,26 +73,39 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        private TextView mUsernameView;
-        private TextView mMessageView;
+        private TextView mLeftUsernameView;
+        private TextView mLeftMessageView;
+        private TextView mRightUsernameView;
+        private TextView mRightMessageView;
         private View itemView;
+        private int direction;
 
         public ViewHolder(View itemView) {
             super(itemView);
             this.itemView = itemView;
-            mUsernameView = (TextView) itemView.findViewById(R.id.username);
-            mMessageView = (TextView) itemView.findViewById(R.id.message);
+            mLeftUsernameView = (TextView) itemView.findViewById(R.id.left_username);
+            mRightUsernameView = (TextView) itemView.findViewById(R.id.right_username);
+            mLeftMessageView = (TextView) itemView.findViewById(R.id.left_message);
+            mRightMessageView = (TextView) itemView.findViewById(R.id.right_message);
         }
 
         public void setUsername(String username) {
-            if (null == mUsernameView) return;
-            mUsernameView.setText(username);
-            mUsernameView.setTextColor(getUsernameColor(username));
+            if (direction == DIRECTION_RECEIVE){
+                mLeftUsernameView.setText(username);
+                mLeftUsernameView.setTextColor(getUsernameColor(username));
+            }else if (direction == DIRECTION_SEND){
+                mRightUsernameView.setText(username);
+                mRightUsernameView.setTextColor(getUsernameColor(username));
+            }
         }
 
         public void setMessage(String message) {
-            if (null == mMessageView) return;
-            mMessageView.setText(message);
+            if (null == mLeftMessageView) return;
+            if (direction == DIRECTION_RECEIVE){
+                mLeftMessageView.setText(message);
+            }else if (direction == DIRECTION_SEND){
+                mRightMessageView.setText(message);
+            }
         }
 
         private int getUsernameColor(String username) {
@@ -106,6 +119,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
 
 
         public void setDirection(int direction) {
+            this.direction = direction;
             if (itemView instanceof LinearLayout){
                 if (direction == DIRECTION_RECEIVE){
                     ((LinearLayout) itemView).setGravity(Gravity.LEFT);
