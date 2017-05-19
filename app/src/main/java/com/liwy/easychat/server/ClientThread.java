@@ -1,6 +1,9 @@
 package com.liwy.easychat.server;
 
+import com.google.gson.Gson;
 import com.liwy.easychat.chat.ChatActions;
+import com.liwy.easychat.chat.MessageUtil;
+import com.liwy.easychat.entity.ChatMessage;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -11,6 +14,9 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 
+import static android.R.id.message;
+import static com.liwy.easychat.utils.DataParse.parseJson;
+
 /**
  * Created by liwy on 2017/5/18.
  */
@@ -19,8 +25,8 @@ public class ClientThread implements Runnable{
     // 客户端的socket连接
     private Socket socket;
     // 跟谁聊天
-    private int talkId;
-    private int id;
+    private String talkId;
+    private String id;
 
     private OutputStream outputStream;
     private InputStream inputStream;
@@ -41,11 +47,10 @@ public class ClientThread implements Runnable{
                     int temp = inputStream.read(buffer);
                     if (temp != -1){
                         String content = new String(buffer,0,temp);
-
-                        if ("0".equals(content))flag = false;
-                        System.out.println("客户端" + id + "说：" + content);
-                        // 转发消息
-                        ServerManager.sendTo(0,content);
+                        ChatMessage chatMessage = parseJson(content);
+                        parseMessage(chatMessage);
+//                        // 转发消息
+//                        ServerManager.sendTo(id,content);
                     }
                 }
             }catch (SocketException e){
@@ -60,25 +65,53 @@ public class ClientThread implements Runnable{
                     inputStream = null;
                     outputStream = null;
                     socket = null;
-                    ServerManager.offline(self);
+                    ServerManager.getInstance().offline(id);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
     }
-    public void parseData(String content){
-        try {
-            JSONObject jsonObject = new JSONObject(content);
-            String action = "";
-            if (jsonObject.isNull("action"))action = jsonObject.getString("action");
-            if (action != null && !"".equals(action)){
-                if (ChatActions.ACTION_LOGIN.equals(action)){
-                    this.
-                }
+
+    /**
+     * 解析ChatMessage数据
+     * @param msg
+     */
+    public void parseMessage(ChatMessage msg){
+        String action = msg.getAction();
+        if (action != null && !"".equals(action)){
+            if (ChatActions.ACTION_LOGIN.equals(action)){
+                this.id = msg.getId();
+                ServerManager.getInstance().online(msg.getId(),this);
+                msg.setContent("登录成功");
+                msg.setMessageType(ChatMessage.MESSAGE_TYPE_SYSTEM);
+                send(MessageUtil.processMessage(msg));
+            }else if (ChatActions.ACTION_LOGOUT.equals(action)){
+                ServerManager.getInstance().offline(msg.getId());
+            }else if (ChatActions.ACTION_SEND.equals(action)){
+                ServerManager.sendTo(msg.getTalkId(),msg.getContent());
+            }else if (ChatActions.ACTION_USERS.equals(action)){
+                getUsers(msg.getId(),action);
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
         }
+    }
+    /**
+     * 登录、退出操作
+     */
+    public void login(){}
+
+    public void logout(){}
+
+    /**
+     * 获取好友列表
+     */
+    public void getUsers(String id,String action){
+        ChatMessage msg = new ChatMessage();
+        msg.setId(id);
+        String users =  ServerManager.getInstance().getUsers();
+        msg.setContent(users);
+        msg.setMessageType(ChatMessage.MESSAGE_TYPE_ROSTER);
+        msg.setAction(action);
+        send(MessageUtil.processMessage(msg));
     }
     // 发送数据
     public void send(String content){
@@ -99,19 +132,19 @@ public class ClientThread implements Runnable{
         this.socket = socket;
     }
 
-    public int getTalkTo() {
-        return talkTo;
+    public String getTalkId() {
+        return talkId;
     }
 
-    public void setTalkTo(int talkTo) {
-        this.talkTo = talkTo;
+    public void setTalkId(String talkId) {
+        this.talkId = talkId;
     }
 
-    public int getSelf() {
-        return self;
+    public String getId() {
+        return id;
     }
 
-    public void setSelf(int self) {
-        this.self = self;
+    public void setId(String id) {
+        this.id = id;
     }
 }

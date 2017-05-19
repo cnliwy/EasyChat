@@ -1,10 +1,16 @@
 package com.liwy.easychat.server;
 
+import com.liwy.easychat.chat.ChatActions;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
+
+import static android.R.attr.key;
 
 /**
  * Created by liwy on 2017/5/16.
@@ -63,19 +69,49 @@ public class ServerManager implements Runnable{
             }
         }
     }
+
+    /**
+     * 获取在线信息
+     * @return
+     */
+    public String getUsers(){
+        Set<String> keys = clients.keySet();
+        StringBuffer sb = new StringBuffer();
+        for (String key : keys){
+            sb.append(key).append(",");
+        }
+        if (sb.length() > 0)sb.deleteCharAt(sb.length()-1);
+        return sb.toString();
+    }
     public void online(String id,ClientThread client){
         clients.put(id,client);
+        pushRosterNotification(id);//有人上线后更新好友列表
+    }
+
+    /**
+     * 新加入一名id
+     * @param id
+     */
+    public void pushRosterNotification(String id){
+        Set<String> keys = clients.keySet();
+        for (String key : keys){
+            if (!id.equals(key)){
+                String content = getUsers();
+                ClientThread client = clients.get(key);
+                client.getUsers(key, ChatActions.ACTION_USER_UPDATE);
+            }
+        }
+    }
+
+    // 离线
+    public void offline(String userId){
+        clients.remove(userId);
     }
 
     // 回复消息给某人
     public static void sendTo(String userId,String content){
         ClientThread clientThread = clients.get(userId);
         clientThread.send(content);
-    }
-
-    // 离线
-    public static void offline(int userId){
-        clients.remove(userId);
     }
 
     public static void main(String[] args) {

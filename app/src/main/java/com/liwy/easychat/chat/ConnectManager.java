@@ -1,8 +1,10 @@
 package com.liwy.easychat.chat;
 
-import com.google.gson.Gson;
+import com.liwy.easychat.callback.RosterMessageListener;
+import com.liwy.easychat.callback.SystemMessageListener;
+import com.liwy.easychat.callback.ChatMessageListener;
 import com.liwy.easychat.entity.ChatMessage;
-import com.liwy.easychat.entity.DataMessage;
+import com.liwy.easychat.utils.DataParse;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,8 +21,9 @@ public class ConnectManager {
     private String id;
     private String talkId;
 
-    private LoginListener loginListener;
-    private NewMessageListener messageListener;
+    private SystemMessageListener systemMessageListener;
+    private ChatMessageListener chatMessageListener;
+    private RosterMessageListener rosterMessageListener;
     /**
      * 获取ThreadHelper的实例
      * @return
@@ -42,7 +45,7 @@ public class ConnectManager {
      * @param host
      * @param port
      */
-    public void connectServer(final String host, final int port){
+    public void connectServer(final String host, final int port, final String id){
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -50,16 +53,20 @@ public class ConnectManager {
                     clientSocket = new Socket(host,port);
                     try {
                         InputStream inputStream = clientSocket.getInputStream();
+                        outputStream = clientSocket.getOutputStream();
+                        login(id);
                         byte[] buffer = new byte[1024 * 4];
                         boolean flag = true;
                         while (flag){
                             int temp = inputStream.read(buffer);
                             if (temp != -1){
                                 String content = new String(buffer,0,temp);
-//                                System.out.println("客户端" + 0 + "说：" + content);
-                                Gson gson = new Gson();
-                                DataMessage dataMessage = gson.fromJson(content,DataMessage.class);
-                                System.out.println("类型：" + dataMessage.getType() + ",内容：" + dataMessage.getContent());
+                                System.out.println("客户端说：" + content);
+//                                Gson gson = new Gson();
+//                                DataMessage dataMessage = gson.fromJson(content,DataMessage.class);
+//                                System.out.println("类型：" + dataMessage.getType() + ",内容：" + dataMessage.getContent());
+                                ChatMessage chatMessage = DataParse.parseJson(content);
+                                if (chatMessage != null) parseMessageType(chatMessage);
                             }
                         }
                     } catch (IOException e) {
@@ -71,6 +78,24 @@ public class ConnectManager {
             }
         }).start();
     }
+    public void parseMessageType(ChatMessage msg){
+        if (msg.getMessageType() == ChatMessage.MESSAGE_TYPE_SYSTEM){
+            parseSystemMessage(msg);
+        }else if (msg.getMessageType() == ChatMessage.MESSAGE_TYPE_ROSTER){
+            parseRosterMessage(msg);
+        }else if (msg.getMessageType() == ChatMessage.MESSAGE_TYPE_CHAT){
+            parseChatMessage(msg);
+        }
+    }
+    public void parseSystemMessage(ChatMessage msg){
+        if (systemMessageListener != null)systemMessageListener.loginCallback(msg);
+    }
+    public void parseRosterMessage(ChatMessage msg){
+        if (rosterMessageListener != null)rosterMessageListener.rosters(msg);
+    }
+    public void parseChatMessage(ChatMessage msg){
+        if (chatMessageListener != null)chatMessageListener.messageArrived(msg);
+    }
     OutputStream outputStream = null;
     // 发送数据至服务器
     private void sendData(final String content){
@@ -78,7 +103,7 @@ public class ConnectManager {
             @Override
             public void run() {
                 try {
-                    outputStream = clientSocket.getOutputStream();
+                    if (outputStream == null)outputStream = clientSocket.getOutputStream();
                     outputStream.write(content.getBytes());
                     outputStream.flush();
                 } catch (IOException e) {
@@ -88,6 +113,7 @@ public class ConnectManager {
         }).start();
     }
     public void login(String id){
+        this.id = id;
         String content = MessageUtil.processLogin(id);
         sendData(content);
     }
@@ -97,9 +123,18 @@ public class ConnectManager {
         chatMessage.setId(id);
         chatMessage.setTalkId(talkId);
         chatMessage.setContent(text);
-        chatMessage.setContentType(ChatMessage.CONTENT_TYPE_CHAT);
-        chatMessage.setType(ChatMessage.TYPE_TEXT);
-        chatMessage.setDataType(ChatMessage.DATA_TYPE_MESSAGE);
+        chatMessage.setChatType(ChatMessage.CHAT_TYPE_CHAT);
+        chatMessage.setContentType(ChatMessage.TYPE_TEXT);
+        chatMessage.setMessageType(ChatMessage.MESSAGE_TYPE_CHAT);
+        String content = MessageUtil.processMessage(chatMessage);
+        sendData(content);
+    }
+    // 获取好友列表
+    public void getUsers(){
+        ChatMessage chatMessage = new ChatMessage();
+        chatMessage.setId(id);
+        chatMessage.setMessageType(ChatMessage.MESSAGE_TYPE_ROSTER);
+        chatMessage.setAction(ChatActions.ACTION_USERS);
         String content = MessageUtil.processMessage(chatMessage);
         sendData(content);
     }
@@ -130,20 +165,20 @@ public class ConnectManager {
         this.talkId = talkId;
     }
 
-    public LoginListener getLoginListener() {
-        return loginListener;
+    public SystemMessageListener getSystemMessageListener() {
+        return systemMessageListener;
     }
 
-    public void setLoginListener(LoginListener loginListener) {
-        this.loginListener = loginListener;
+    public void setSystemMessageListener(SystemMessageListener systemMessageListener) {
+        this.systemMessageListener = systemMessageListener;
     }
 
-    public NewMessageListener getMessageListener() {
-        return messageListener;
+    public ChatMessageListener getChatMessageListener() {
+        return chatMessageListener;
     }
 
-    public void setMessageListener(NewMessageListener messageListener) {
-        this.messageListener = messageListener;
+    public void setChatMessageListener(ChatMessageListener chatMessageListener) {
+        this.chatMessageListener = chatMessageListener;
     }
 
     public static void main(String[] args) {
@@ -167,4 +202,11 @@ public class ConnectManager {
         }
     }
 
+    public RosterMessageListener getRosterMessageListener() {
+        return rosterMessageListener;
+    }
+
+    public void setRosterMessageListener(RosterMessageListener rosterMessageListener) {
+        this.rosterMessageListener = rosterMessageListener;
+    }
 }

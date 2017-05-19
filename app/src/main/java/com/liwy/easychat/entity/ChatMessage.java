@@ -5,14 +5,13 @@ package com.liwy.easychat.entity;
  */
 
 public class ChatMessage {
-    //数据类型
-    public static final int DATA_TYPE_CHAT = 1;      //系统
-    public static final int DATA_TYPE_ROSTER = 2;     // 好友
-    public static final int DATA_TYPE_MESSAGE = 3;    // 消息
     //消息类型
-    public static final int CONTENT_TYPE_CHAT = 1;      //单聊
-    public static final int CONTENT_TYPE_GROUP = 2;     // 群聊
-    public static final int CONTENT_TYPE_SYSTEM = 3;    // 系统消息
+    public static final int MESSAGE_TYPE_SYSTEM = 1;      //系统
+    public static final int MESSAGE_TYPE_ROSTER = 2;     // 好友
+    public static final int MESSAGE_TYPE_CHAT = 3;    // 消息
+    //聊天消息类型
+    public static final int CHAT_TYPE_CHAT = 1;      //单聊
+    public static final int CHAT_TYPE_GROUP = 2;     // 群聊
 
     //消息内容类型
     public static final int TYPE_TEXT = 1;                 // 文字
@@ -24,10 +23,9 @@ public class ChatMessage {
     private String talkId;  //对方的id
     private String content; //消息内容
     private String groupId; //群id
-    private int type;//1 单聊 2 群聊 3 公告
+    private int chatType;//1 单聊 2 群聊 3 公告
     private int contentType;//1 文字、2 图片、3 语音
-    private int dataType;//1 系统 2好友 3消息
-
+    private int messageType;//1 系统 2好友 3消息
     private String action;//操作
 
     public String getId() {
@@ -62,12 +60,12 @@ public class ChatMessage {
         this.groupId = groupId;
     }
 
-    public int getType() {
-        return type;
+    public int getChatType() {
+        return chatType;
     }
 
-    public void setType(int type) {
-        this.type = type;
+    public void setChatType(int chatType) {
+        this.chatType = chatType;
     }
 
     public int getContentType() {
@@ -78,12 +76,12 @@ public class ChatMessage {
         this.contentType = contentType;
     }
 
-    public int getDataType() {
-        return dataType;
+    public int getMessageType() {
+        return messageType;
     }
 
-    public void setDataType(int dataType) {
-        this.dataType = dataType;
+    public void setMessageType(int messageType) {
+        this.messageType = messageType;
     }
 
     public String getMsdId() {
@@ -96,5 +94,9 @@ public class ChatMessage {
 
     public void setAction(String action) {
         this.action = action;
+    }
+
+    public String getAction() {
+        return action;
     }
 }
