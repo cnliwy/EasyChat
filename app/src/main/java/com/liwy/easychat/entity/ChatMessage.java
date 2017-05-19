@@ -18,9 +18,15 @@ public class ChatMessage {
     public static final int TYPE_IMAGE = 2;                 // 图片
     public static final int TYPE_AUDIO = 3;                 // 语音
 
+    // 消息来源
+    public static final int DIRECTION_RECEIVE = 1;                 // 接收的消息
+    public static final int DIRECTION_SEND = 2;                 // 发出的消息
+
+
     private String msdId;//消息id
     private String id;     //自己的id
     private String talkId;  //对方的id
+    private int direction;  //1 from 接收的消息 2 to 发出的消息
     private String content; //消息内容
     private String groupId; //群id
     private int chatType;//1 单聊 2 群聊 3 公告
@@ -98,5 +104,13 @@ public class ChatMessage {
 
     public String getAction() {
         return action;
+    }
+
+    public int getDirection() {
+        return direction;
+    }
+
+    public void setDirection(int direction) {
+        this.direction = direction;
     }
 }

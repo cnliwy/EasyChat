@@ -24,6 +24,7 @@ public class ConnectManager {
     private SystemMessageListener systemMessageListener;
     private ChatMessageListener chatMessageListener;
     private RosterMessageListener rosterMessageListener;
+    boolean isConnected = true;
     /**
      * 获取ThreadHelper的实例
      * @return
@@ -40,6 +41,7 @@ public class ConnectManager {
         return connectManager;
     }
 
+    InputStream inputStream;
     /**
      * 连接服务端并发送数据
      * @param host
@@ -52,21 +54,18 @@ public class ConnectManager {
                 try {
                     clientSocket = new Socket(host,port);
                     try {
-                        InputStream inputStream = clientSocket.getInputStream();
+                        inputStream = clientSocket.getInputStream();
                         outputStream = clientSocket.getOutputStream();
                         login(id);
                         byte[] buffer = new byte[1024 * 4];
-                        boolean flag = true;
-                        while (flag){
-                            int temp = inputStream.read(buffer);
-                            if (temp != -1){
-                                String content = new String(buffer,0,temp);
-                                System.out.println("客户端说：" + content);
-//                                Gson gson = new Gson();
-//                                DataMessage dataMessage = gson.fromJson(content,DataMessage.class);
-//                                System.out.println("类型：" + dataMessage.getType() + ",内容：" + dataMessage.getContent());
-                                ChatMessage chatMessage = DataParse.parseJson(content);
-                                if (chatMessage != null) parseMessageType(chatMessage);
+                        while (isConnected){
+                            if (!clientSocket.isClosed()){
+                                int temp = inputStream.read(buffer);
+                                if (temp != -1){
+                                    String content = new String(buffer,0,temp);
+                                    ChatMessage chatMessage = DataParse.parseJson(content);
+                                    if (chatMessage != null) parseMessageType(chatMessage);
+                                }
                             }
                         }
                     } catch (IOException e) {
@@ -108,6 +107,16 @@ public class ConnectManager {
                     outputStream.flush();
                 } catch (IOException e) {
                     e.printStackTrace();
+                }finally {
+                    if (!isConnected){
+                        try {
+                            inputStream.close();
+                            outputStream.close();
+                            clientSocket.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
             }
         }).start();
@@ -118,7 +127,7 @@ public class ConnectManager {
         sendData(content);
     }
     // 发送文字消息
-    public void sendMessage(String text){
+    public ChatMessage sendMessage(String text,String talkId){
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.setId(id);
         chatMessage.setTalkId(talkId);
@@ -126,9 +135,13 @@ public class ConnectManager {
         chatMessage.setChatType(ChatMessage.CHAT_TYPE_CHAT);
         chatMessage.setContentType(ChatMessage.TYPE_TEXT);
         chatMessage.setMessageType(ChatMessage.MESSAGE_TYPE_CHAT);
+        chatMessage.setAction(ChatActions.ACTION_SEND);
+        chatMessage.setDirection(ChatMessage.DIRECTION_SEND);
         String content = MessageUtil.processMessage(chatMessage);
         sendData(content);
+        return chatMessage;
     }
+
     // 获取好友列表
     public void getUsers(){
         ChatMessage chatMessage = new ChatMessage();
@@ -141,12 +154,9 @@ public class ConnectManager {
 
     //  关闭连接
     public void disconnect(){
-        try {
-            outputStream.close();
-            clientSocket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        System.out.println("关闭连接");
+        sendData(MessageUtil.processLogout(id));
+        isConnected = false;
     }
 
     public String getId() {

@@ -49,8 +49,6 @@ public class ClientThread implements Runnable{
                         String content = new String(buffer,0,temp);
                         ChatMessage chatMessage = parseJson(content);
                         parseMessage(chatMessage);
-//                        // 转发消息
-//                        ServerManager.sendTo(id,content);
                     }
                 }
             }catch (SocketException e){
@@ -88,7 +86,10 @@ public class ClientThread implements Runnable{
             }else if (ChatActions.ACTION_LOGOUT.equals(action)){
                 ServerManager.getInstance().offline(msg.getId());
             }else if (ChatActions.ACTION_SEND.equals(action)){
-                ServerManager.sendTo(msg.getTalkId(),msg.getContent());
+                msg.setId(msg.getTalkId());
+                msg.setTalkId(id);
+                msg.setDirection(ChatMessage.DIRECTION_RECEIVE);
+                ServerManager.talkTo(msg);
             }else if (ChatActions.ACTION_USERS.equals(action)){
                 getUsers(msg.getId(),action);
             }
@@ -107,7 +108,7 @@ public class ClientThread implements Runnable{
     public void getUsers(String id,String action){
         ChatMessage msg = new ChatMessage();
         msg.setId(id);
-        String users =  ServerManager.getInstance().getUsers();
+        String users =  ServerManager.getInstance().getUsers(id);
         msg.setContent(users);
         msg.setMessageType(ChatMessage.MESSAGE_TYPE_ROSTER);
         msg.setAction(action);
