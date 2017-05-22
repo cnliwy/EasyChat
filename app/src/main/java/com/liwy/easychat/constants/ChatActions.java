@@ -1,4 +1,4 @@
-package com.liwy.easychat.chat;
+package com.liwy.easychat.constants;
 
 /**
  * Created by liwy on 2017/5/18.

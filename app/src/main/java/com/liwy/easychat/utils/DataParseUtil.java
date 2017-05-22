@@ -7,7 +7,7 @@ import com.liwy.easychat.entity.ChatMessage;
  * Created by liwy on 2017/5/19.
  */
 
-public class DataParse {
+public class DataParseUtil {
     /**
      * 解析json数据
      * @param content

@@ -1,12 +1,8 @@
 package com.liwy.easychat.server;
 
-import com.google.gson.Gson;
-import com.liwy.easychat.chat.ChatActions;
-import com.liwy.easychat.chat.MessageUtil;
+import com.liwy.easychat.constants.ChatActions;
+import com.liwy.easychat.utils.MessageUtil;
 import com.liwy.easychat.entity.ChatMessage;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,8 +10,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 
-import static android.R.id.message;
-import static com.liwy.easychat.utils.DataParse.parseJson;
+import static com.liwy.easychat.utils.DataParseUtil.parseJson;
 
 /**
  * Created by liwy on 2017/5/18.

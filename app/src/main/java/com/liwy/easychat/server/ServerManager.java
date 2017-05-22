@@ -1,18 +1,17 @@
 package com.liwy.easychat.server;
 
-import com.liwy.easychat.chat.ChatActions;
-import com.liwy.easychat.chat.MessageUtil;
+import com.liwy.easychat.constants.ChatActions;
+import com.liwy.easychat.utils.MessageUtil;
 import com.liwy.easychat.entity.ChatMessage;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-
-import static android.R.attr.key;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by liwy on 2017/5/16.
@@ -24,6 +23,9 @@ public class ServerManager implements Runnable{
     // 用户连接线程缓存
     private static Map<String,ClientThread> clients;
     private static ServerManager instance;
+    //创建客户端线程池
+    private ExecutorService executors = Executors.newCachedThreadPool();
+
 
     public static void init(int port){
         instance = new ServerManager(port);
@@ -63,9 +65,11 @@ public class ServerManager implements Runnable{
             try {
                 Socket socket = server.accept();
                 System.out.println("接收到来自客户端的连接");
-                ClientThread clientThread = null;
-                clientThread = new ClientThread(socket);
-                new Thread(clientThread).start();
+                // 创建客户端线程
+                ClientThread clientThread = new ClientThread(socket);
+//                new Thread(clientThread).start();
+                // 由线程池统一调度执行
+                executors.execute(clientThread);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -90,7 +94,6 @@ public class ServerManager implements Runnable{
         clients.put(id,client);
         pushRosterNotification(id);//有人上线后更新好友列表
     }
-
 
     // 离线，清除缓存，通知好友更新列表
     public void offline(String userId){

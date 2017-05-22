@@ -1,6 +1,7 @@
-package com.liwy.easychat.chat;
+package com.liwy.easychat.utils;
 
 import com.google.gson.Gson;
+import com.liwy.easychat.constants.ChatActions;
 import com.liwy.easychat.entity.ChatMessage;
 
 /**

@@ -3,8 +3,10 @@ package com.liwy.easychat.chat;
 import com.liwy.easychat.callback.RosterMessageListener;
 import com.liwy.easychat.callback.SystemMessageListener;
 import com.liwy.easychat.callback.ChatMessageListener;
+import com.liwy.easychat.constants.ChatActions;
 import com.liwy.easychat.entity.ChatMessage;
-import com.liwy.easychat.utils.DataParse;
+import com.liwy.easychat.utils.DataParseUtil;
+import com.liwy.easychat.utils.MessageUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -63,7 +65,7 @@ public class ConnectManager {
                                 int temp = inputStream.read(buffer);
                                 if (temp != -1){
                                     String content = new String(buffer,0,temp);
-                                    ChatMessage chatMessage = DataParse.parseJson(content);
+                                    ChatMessage chatMessage = DataParseUtil.parseJson(content);
                                     if (chatMessage != null) parseMessageType(chatMessage);
                                 }
                             }
